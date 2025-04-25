@@ -33,9 +33,10 @@ namespace Infrastructure.DI
             services.AddScoped<IPasswordProvider, PasswordProvider>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
-            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<ITaskService, TaskService>();
             return services;
         }
     }

@@ -16,12 +16,10 @@ namespace Infrastructure.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IRepository<Employees> _employeeRepository;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<EmployeeService> _logger;
-        public EmployeeService(IRepository<Employees> employeeService, IUnitOfWork unitOfWork, ILogger<EmployeeService> logger)
+        public EmployeeService(IRepository<Employees> employeeService, ILogger<EmployeeService> logger)
         {
             _employeeRepository = employeeService;
-            _unitOfWork = unitOfWork;
             _logger = logger;
         }
         public void Add(Employees data)

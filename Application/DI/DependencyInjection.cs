@@ -11,6 +11,7 @@ using MediatR;
 using System.Reflection;
 using System.Net.NetworkInformation;
 using Application.Features.Employee.Validators;
+using Application.Features.Task.Validators;
 namespace Application.DI
 {
     public static class DependencyInjection
@@ -22,6 +23,9 @@ namespace Application.DI
             services.AddValidatorsFromAssemblyContaining<RegisterCommandValidator>();
             services.AddValidatorsFromAssemblyContaining<LoginCommandValidator>();
             services.AddValidatorsFromAssemblyContaining<CreateEmployeeCommandValidator>();
+            services.AddValidatorsFromAssemblyContaining<UpdateEmployeeCommandValidator>();
+            services.AddValidatorsFromAssemblyContaining<CreateTaskCommandValidator>();
+            services.AddValidatorsFromAssemblyContaining<UpdateTaskCommandValidator>();
             services.AddFluentValidationAutoValidation();
             return services;
         }

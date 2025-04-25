@@ -43,6 +43,10 @@ namespace Infrastructure.Persistence
             {
                 entity.HasKey(x => x.RecID);
                 entity.Property(x => x.RecID).IsRequired();
+                entity.Property(x => x.Description).IsRequired(false);
+                entity.Property(x => x.Priority).IsRequired(false);
+                entity.Property(x => x.Owner).IsRequired(false);
+                entity.Property(x => x.AssignBy).IsRequired(false);
                 entity.Property(x => x.ModifiedBy).IsRequired(false);
                 entity.Property(x => x.ModifiedOn).IsRequired(false);
             });
