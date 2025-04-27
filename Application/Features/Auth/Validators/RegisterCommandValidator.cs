@@ -22,13 +22,13 @@ namespace Application.Features.Auth.Validators
 
             RuleFor(x => x.Phone)
                 .NotEmpty().WithMessage("Số điện thoại không được bỏ trống.")
-                .Matches(@"^\+?\d{10,15}$").WithMessage("Phone không hợp lệ"); // regex bắt đầu = 0 và độ dài 10-15 kí tự
+                .Matches(@"^\+?\d{10,15}$").WithMessage("Số điện thoại không hợp lệ");
 
             RuleFor(x => x.UserName)
                 .NotEmpty().WithMessage("Tên tài khoản không được bỏ trống.")
                 .MinimumLength(5).WithMessage("Tên tài khoản không hợp lệ.")
                 .MaximumLength(20).WithMessage("Tên tài khoản không hợp lệ.")
-                .Matches(@"^[a-zA-Z0-9]+$").WithMessage("Tên tài khoản không được chứa ký tự đặc biệt."); // regex không chứa các kí tự đặt biệt
+                .Matches(@"^[a-zA-Z0-9]+$").WithMessage("Tên tài khoản không được chứa ký tự đặc biệt.");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Mật khẩu không được bỏ trống.")

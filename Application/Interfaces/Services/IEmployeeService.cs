@@ -14,6 +14,5 @@ namespace Application.Interfaces.Services
         void Add(Employees data);
         void Update(Employees data);
         void Delete(Employees data);
-        string GenerateEmployeeID();
     }
 }

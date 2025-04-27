@@ -9,11 +9,6 @@ namespace Domain.Entities
 {
     public class Roles : IEntity
     {
-        public Roles()
-        {
-            RecID = Guid.NewGuid();
-            CreatedOn = DateTime.Now;
-        }
         public Guid RecID { get; set; }
         public string RoleName { get; set; }
         public string CreatedBy { get; set; }

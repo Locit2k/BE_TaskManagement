@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class DTOTokenUser : DTOUser
+    public class DTOToken
     {
+        public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
-        public DateTime? RefreshTokenExperies { get; set; }
-
     }
 }

@@ -20,7 +20,6 @@ namespace Infrastructure.Authentications
         {
             _next = next;
         }
-
         public async Task Invoke(HttpContext context, IRepository<Users> userRepository)
         {
             var enpoint = context.GetEndpoint();

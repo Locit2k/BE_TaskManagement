@@ -36,6 +36,20 @@ namespace API
             configuration.ReadFrom.Configuration(context.Configuration, sectionName: "Logging"));
             #endregion
 
+            #region CROS
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                                  policy =>
+                                  {
+                                      policy.WithOrigins("http://localhost:4200")
+                                        .AllowAnyHeader()
+                                        .AllowAnyMethod();
+                                  });
+            });
+            #endregion
+
             #region Dependency Injection
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddApplication();
@@ -90,6 +104,8 @@ namespace API
             }
             app.UseSerilogRequestLogging();
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseCors(MyAllowSpecificOrigins);
             app.UseAuthentication();
             app.UseAuthorizeMidleware();
             app.UseAuthorization();

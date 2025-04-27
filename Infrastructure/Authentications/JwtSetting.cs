@@ -12,7 +12,7 @@ namespace Infrastructure.Models
         public string Issuer { get; set; }
         public string Audience { get; set; }
         public double ExpiresInMinutes { get; set; }
-        public double RefreshTokenExpiresInMinutes { get; set; }
+        public double RefreshTokenDays { get; set; }
 
     }
 }

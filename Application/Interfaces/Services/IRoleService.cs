@@ -10,6 +10,5 @@ namespace Application.Interfaces.Services
 {
     public interface IRoleService
     {
-        Task<DTORole?> GetByRoleName(string roleName);
     }
 }

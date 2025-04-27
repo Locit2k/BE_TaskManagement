@@ -23,19 +23,5 @@ namespace Infrastructure.Services
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<DTORole?> GetByRoleName(string roleName)
-        {
-            DTORole? response = null;
-            var role = await _roleRepository.GetOneAsync(x => x.RoleName == roleName);
-            if (role != null)
-            {
-                response = new DTORole()
-                {
-                    RecID = role.RecID,
-                    RoleName = roleName
-                };
-            }
-            return response;
-        }
     }
 }

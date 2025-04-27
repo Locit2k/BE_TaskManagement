@@ -9,11 +9,6 @@ namespace Domain.Entities
 {
     public class Tasks : IEntity
     {
-        public Tasks()
-        {
-            RecID = Guid.NewGuid();
-            CreatedOn = DateTime.Now;
-        }
         public Guid RecID { get; set; }
         public string Title { get; set; }
         public string? Description { get; set; }

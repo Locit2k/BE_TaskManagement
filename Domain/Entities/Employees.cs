@@ -9,11 +9,6 @@ namespace Domain.Entities
 {
     public class Employees : IEntity
     {
-        public Employees()
-        {
-            RecID = Guid.NewGuid();
-            CreatedOn = DateTime.Now;
-        }
         public Guid RecID { get; set; }
         public string EmployeeID { get; set; }
         public string EmployeeName { get; set; }

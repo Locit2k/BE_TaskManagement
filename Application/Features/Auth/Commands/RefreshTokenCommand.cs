@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Auth.Commands
 {
-    public class RefreshTokenCommand : IRequest<DTOResponse<string>>
+    public class RefreshTokenCommand : IRequest<DTOResponse<DTOToken>>
     {
         public string UserName { get; set; }
         public string RefreshToken { get; set; }

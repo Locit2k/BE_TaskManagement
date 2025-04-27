@@ -37,20 +37,7 @@ namespace Infrastructure.Services
             _employeeRepository.Delete(data);
         }
 
-        public string GenerateEmployeeID()
-        {
-            var id = "";
-            string day, month, year, hr, min, sec;
-            DateTime date = DateTime.Now;
-            day = date.Date.Day.ToString();
-            month = date.Month.ToString();
-            year = date.Year.ToString();
-            hr = date.Hour.ToString();
-            min = date.Minute.ToString();
-            sec = date.Second.ToString();
-            id = "E-" + day + month + year + hr + min + sec;
-            return id;
-        }
+
 
         public async Task<Employees?> GetOneAsync(Expression<Func<Employees, bool>> predicate)
         {
