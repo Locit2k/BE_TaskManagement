@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Auth.Handlers
 {
-    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, DTOResponse<DTOToken>>
+    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, DTOResponse<string>>
     {
         private readonly IJwtProvider _jwtProvider;
         private readonly IAuthService _authService;
@@ -27,11 +27,11 @@ namespace Application.Features.Auth.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<DTOResponse<DTOToken>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task<DTOResponse<string>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await _authService.RefreshToken(request.UserName, request.RefreshToken);
+                var result = await _authService.RefreshToken(request.UserName);
                 if (!result.IsError)
                 {
                     await _unitOfWork.SaveAsync();
@@ -41,10 +41,10 @@ namespace Application.Features.Auth.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<DTOToken>()
+                return new DTOResponse<string>()
                 {
                     IsError = true,
-                    ErrorType = "3",
+                    ErrorType = "2",
                     MessageError = "Hệ thống thực thi không thành công. Vui lòng thử lại hoặc liên hệ nhà phát triển."
                 };
             }

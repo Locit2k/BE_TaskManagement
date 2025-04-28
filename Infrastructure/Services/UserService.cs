@@ -23,7 +23,6 @@ namespace Infrastructure.Services
         private readonly IRepository<Users> _userRepository;
         private readonly IRepository<Employees> _employeeRepository;
         private readonly IRepository<Roles> _roleRepository;
-        private JwtSetting _jwtSettings;
         private readonly ILogger<UserService> _logger;
         public UserService(IRepository<Users> userRepository, IRepository<Employees> employeeRepository, IRepository<Roles> roleRepository, IUnitOfWork unitOfWork, ILogger<UserService> logger)
         {
@@ -36,6 +35,33 @@ namespace Infrastructure.Services
         public void Add(Users data)
         {
             _userRepository.Add(data);
+        }
+
+        public async Task<DTOUser> GetUserByUserName(string userName)
+        {
+            var user = await _userRepository.GetOneAsync(x => x.UserName == userName);
+            if (user == null) return null;
+            var result = new DTOUser()
+            {
+                UserName = user.UserName
+            };
+            Guid.TryParse(user.RoleID, out var gRoleID);
+            var role = await _roleRepository.GetOneAsync(x => x.RecID == gRoleID);
+            if (role != null)
+            {
+                result.Role = role.RoleName;
+            }
+            var employee = await _employeeRepository.GetOneAsync(x => x.EmployeeID == user.EmployeeID);
+            if (employee != null)
+            {
+                result.FullName = employee.EmployeeName;
+                result.Gender = employee.Gender;
+                result.Birthday = employee.Birthday;
+                result.Phone = employee.Phone;
+                result.Email = employee.Email;
+                result.Address = employee.Address;
+            }
+            return result;
         }
     }
 }

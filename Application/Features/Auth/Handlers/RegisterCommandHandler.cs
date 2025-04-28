@@ -17,7 +17,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Application.Features.Auth.Handlers
 {
-    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, DTOResponse<DTOToken>>
+    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, DTOResponse<string>>
     {
         private readonly IAuthService _authService;
         private readonly IUnitOfWork _unitOfWork;
@@ -29,7 +29,7 @@ namespace Application.Features.Auth.Handlers
             _logger = logger;
         }
 
-        public async Task<DTOResponse<DTOToken>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+        public async Task<DTOResponse<string>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -41,7 +41,6 @@ namespace Application.Features.Auth.Handlers
                     Gender = request.Gender,
                     Email = request.Email,
                     Phone = request.Phone,
-                    Address = request.Address,
                     UserName = request.UserName,
                     Password = request.Password
                 };
@@ -55,7 +54,7 @@ namespace Application.Features.Auth.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<DTOToken>()
+                return new DTOResponse<string>()
                 {
                     IsError = true,
                     ErrorType = "2",

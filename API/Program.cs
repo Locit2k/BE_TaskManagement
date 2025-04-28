@@ -107,7 +107,7 @@ namespace API
             app.UseStaticFiles();
             app.UseCors(MyAllowSpecificOrigins);
             app.UseAuthentication();
-            app.UseAuthorizeMidleware();
+            app.UseCustomAuthorizeMidleware();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();

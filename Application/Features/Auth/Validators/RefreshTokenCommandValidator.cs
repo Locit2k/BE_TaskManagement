@@ -14,9 +14,6 @@ namespace Application.Features.Auth.Validators
         {
             RuleFor(x => x.UserName)
                 .NotEmpty().WithMessage("Tên tài khoản không được bỏ trống.");
-
-            RuleFor(x => x.RefreshToken)
-                .NotEmpty().WithMessage("RefreshToken không được bỏ trống.");
         }
     }
 }

@@ -7,6 +7,7 @@ using Azure.Core;
 using Domain.Entities;
 using Infrastructure.Models;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,38 +25,46 @@ namespace Infrastructure.Services
 {
     public class AuthService : IAuthService
     {
+        private readonly JwtSetting _jwtSettings;
         private readonly IJwtProvider _jwtProvider;
         private readonly IPasswordProvider _passwordProvider;
         private readonly IRepository<Users> _userRepository;
         private readonly IRepository<Employees> _employeeRepository;
         private readonly IRepository<Roles> _roleRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly JwtSetting _jwtSettings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IRepository<Users> userRepository, IRepository<Employees> employeeRepository, IRepository<Roles> roleRepository, IUnitOfWork unitOfWork, IJwtProvider jwtProvider, IOptions<JwtSetting> jwtSettings, IPasswordProvider passwordProvider, ILogger<AuthService> logger)
+        public AuthService(
+            IOptions<JwtSetting> jwtSettings,
+            IJwtProvider jwtProvider,
+            IPasswordProvider passwordProvider,
+            IRepository<Users> userRepository,
+            IRepository<Employees> employeeRepository,
+            IRepository<Roles> roleRepository,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<AuthService> logger)
         {
+            _jwtSettings = jwtSettings.Value;
+            _jwtProvider = jwtProvider;
+            _passwordProvider = passwordProvider;
             _userRepository = userRepository;
             _employeeRepository = employeeRepository;
             _roleRepository = roleRepository;
-            _unitOfWork = unitOfWork;
-            _jwtProvider = jwtProvider;
-            _jwtSettings = jwtSettings.Value;
-            _passwordProvider = passwordProvider;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
 
-        public async Task<DTOResponse<DTOToken>> Login(string username, string password)
+        public async Task<DTOResponse<string>> Login(string username, string password)
         {
             try
             {
                 var user = await _userRepository.GetOneAsync(x => x.UserName == username);
                 if (user == null)
                 {
-                    return new DTOResponse<DTOToken>()
+                    return new DTOResponse<string>()
                     {
                         IsError = true,
-                        ErrorType = "1",
+                        ErrorType = "2",
                         MessageError = "Tên đăng nhập hoặc mật khẩu chưa chính xác."
                     };
                 };
@@ -63,10 +72,10 @@ namespace Infrastructure.Services
                 var validPassword = _passwordProvider.VerifyPassword(user, user.Password, password);
                 if (!validPassword)
                 {
-                    return new DTOResponse<DTOToken>()
+                    return new DTOResponse<string>()
                     {
                         IsError = true,
-                        ErrorType = "1",
+                        ErrorType = "2",
                         MessageError = "Tên đăng nhập hoặc mật khẩu chưa chính xác."
                     };
                 }
@@ -92,19 +101,20 @@ namespace Infrastructure.Services
                     dtoUser.Address = employee.Address;
                 }
 
-                var dtoToken = new DTOToken() { AccessToken = _jwtProvider.GenerateToken(dtoUser), RefreshToken = _jwtProvider.GenerateRefreshToken() };
-                user.RefreshToken = dtoToken.RefreshToken;
+                var token = _jwtProvider.GenerateToken(dtoUser);
+                user.RefreshToken = _jwtProvider.GenerateRefreshToken();
                 user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
-                return new DTOResponse<DTOToken>()
+                SetRefreshTokenCookie(_httpContextAccessor.HttpContext, user.RefreshToken);
+                return new DTOResponse<string>()
                 {
                     IsError = false,
-                    Data = dtoToken
+                    Data = token
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<DTOToken>()
+                return new DTOResponse<string>()
                 {
                     IsError = true,
                     ErrorType = "2",
@@ -113,80 +123,14 @@ namespace Infrastructure.Services
             }
         }
 
-        public async Task<DTOResponse<DTOToken>> RefreshToken(string userName, string refreshToken)
-        {
-            try
-            {
-                var user = await _userRepository.GetOneAsync(x => x.UserName == userName && x.RefreshToken == refreshToken);
-                if (user == null)
-                {
-                    return new DTOResponse<DTOToken>()
-                    {
-                        IsError = true,
-                        ErrorType = "1",
-                        MessageError = "Không tìm thấy thông tin người dùng.",
-                    };
-                }
-
-                var dtoUser = new DTOUser()
-                {
-                    UserName = user.UserName,
-                };
-                Guid.TryParse(user.RoleID, out var gRoleID);
-                var role = await _roleRepository.GetOneAsync(x => x.RecID == gRoleID);
-                if (role != null)
-                {
-                    dtoUser.Role = role.RoleName;
-                }
-
-                var employee = await _employeeRepository.GetOneAsync(x => x.EmployeeID == user.EmployeeID);
-                if (employee != null)
-                {
-                    dtoUser.FullName = employee.EmployeeName;
-                    dtoUser.Gender = employee.Gender;
-                    dtoUser.Birthday = employee.Birthday;
-                    dtoUser.Phone = employee.Phone;
-                    dtoUser.Email = employee.Email;
-                    dtoUser.Address = employee.Address;
-                }
-
-                var dtoToken = new DTOToken()
-                {
-                    AccessToken = _jwtProvider.GenerateToken(dtoUser)
-                };
-                if (user.RefreshTokenExperies == null || user.RefreshTokenExperies < DateTime.Now)
-                {
-                    user.RefreshToken = _jwtProvider.GenerateRefreshToken();
-                    user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
-                    _userRepository.Update(user);
-                }
-                dtoToken.RefreshToken = user.RefreshToken;
-                return new DTOResponse<DTOToken>()
-                {
-                    IsError = false,
-                    Data = dtoToken,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<DTOToken>()
-                {
-                    IsError = true,
-                    ErrorType = "2",
-                    MessageError = "Hệ thống thực thi không thành công. Vui lòng thử lại hoặc liên hệ nhà phát triển."
-                };
-            }
-        }
-
-        public async Task<DTOResponse<DTOToken>> Register(DTORegister data)
+        public async Task<DTOResponse<string>> Register(DTORegister data)
         {
             try
             {
                 var checkUserName = await _userRepository.ExistAsync(x => x.UserName == data.UserName);
                 if (checkUserName)
                 {
-                    return new DTOResponse<DTOToken>()
+                    return new DTOResponse<string>()
                     {
                         IsError = true,
                         ErrorType = "1",
@@ -197,7 +141,7 @@ namespace Infrastructure.Services
                 var checkEmail = await _employeeRepository.ExistAsync(x => x.Email == data.Email);
                 if (checkEmail)
                 {
-                    return new DTOResponse<DTOToken>()
+                    return new DTOResponse<string>()
                     {
                         IsError = true,
                         ErrorType = "1",
@@ -210,7 +154,7 @@ namespace Infrastructure.Services
                 if (roleEmp == null)
                 {
                     _logger.LogError("Tạo tài khoản không thành công. Không tìm thấy thông tin RoleName = Employee.");
-                    return new DTOResponse<DTOToken>()
+                    return new DTOResponse<string>()
                     {
                         IsError = true,
                         ErrorType = "2",
@@ -257,23 +201,107 @@ namespace Infrastructure.Services
                     Gender = data.Gender,
                     Role = roleEmp.RoleName
                 };
-                var dtoToken = new DTOToken() { AccessToken = _jwtProvider.GenerateToken(dtoUser), RefreshToken = user.RefreshToken };
-                return new DTOResponse<DTOToken>()
+                var token = _jwtProvider.GenerateToken(dtoUser);
+                user.RefreshToken = _jwtProvider.GenerateRefreshToken();
+                user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
+                SetRefreshTokenCookie(_httpContextAccessor.HttpContext, user.RefreshToken);
+                return new DTOResponse<string>()
                 {
                     IsError = false,
-                    Data = dtoToken
+                    Data = token
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<DTOToken>()
+                return new DTOResponse<string>()
                 {
                     IsError = true,
                     ErrorType = "2",
                     MessageError = "Tạo tài khoản không thành công. Vui lòng thử lại hoặc liên hệ nhà phát triển."
                 };
             }
+        }
+
+        public async Task<DTOResponse<string>> RefreshToken(string userName)
+        {
+            try
+            {
+                var refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
+                var user = await _userRepository.GetOneAsync(x => x.UserName == userName && x.RefreshToken == refreshToken);
+                if (user == null)
+                {
+                    return new DTOResponse<string>()
+                    {
+                        IsError = true,
+                        ErrorType = "1",
+                        MessageError = "Không tìm thấy thông tin người dùng.",
+                    };
+                }
+
+                var dtoUser = new DTOUser()
+                {
+                    UserName = user.UserName,
+                };
+                Guid.TryParse(user.RoleID, out var gRoleID);
+                var role = await _roleRepository.GetOneAsync(x => x.RecID == gRoleID);
+                if (role != null)
+                {
+                    dtoUser.Role = role.RoleName;
+                }
+
+                var employee = await _employeeRepository.GetOneAsync(x => x.EmployeeID == user.EmployeeID);
+                if (employee != null)
+                {
+                    dtoUser.FullName = employee.EmployeeName;
+                    dtoUser.Gender = employee.Gender;
+                    dtoUser.Birthday = employee.Birthday;
+                    dtoUser.Phone = employee.Phone;
+                    dtoUser.Email = employee.Email;
+                    dtoUser.Address = employee.Address;
+                }
+
+                var token = _jwtProvider.GenerateToken(dtoUser);
+                if (user.RefreshTokenExperies == null || user.RefreshTokenExperies < DateTime.Now)
+                {
+                    user.RefreshToken = _jwtProvider.GenerateRefreshToken();
+                    user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
+                    _userRepository.Update(user);
+                }
+                return new DTOResponse<string>()
+                {
+                    IsError = false,
+                    Data = token,
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(JsonSerializer.Serialize(ex));
+                return new DTOResponse<string>()
+                {
+                    IsError = true,
+                    ErrorType = "2",
+                    MessageError = "Hệ thống thực thi không thành công. Vui lòng thử lại hoặc liên hệ nhà phát triển."
+                };
+            }
+        }
+
+        public void SetRefreshTokenCookie(HttpContext? context, string refreshToken)
+        {
+            if (context == null)
+            {
+                _logger.LogError("SetRefreshTokenCookie: HttpContext is null.");
+                return;
+            }
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays),
+                Path = "/"
+            };
+            context.Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
 
         private string GenerateEmployeeID()

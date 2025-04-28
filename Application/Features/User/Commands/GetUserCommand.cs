@@ -6,11 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Features.Auth.Commands
+namespace Application.Features.User.Commands
 {
-    public class LoginCommand : IRequest<DTOResponse<string>>
+    public class GetUserCommand : IRequest<DTOResponse<DTOUser>>
     {
         public string UserName { get; set; }
-        public string Password { get; set; }
     }
 }

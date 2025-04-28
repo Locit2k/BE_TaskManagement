@@ -9,7 +9,7 @@ namespace Infrastructure.Authentications
 {
     public static class CustomAuthorizeMiddleware
     {
-        public static IApplicationBuilder UseAuthorizeMidleware(this IApplicationBuilder app)
+        public static IApplicationBuilder UseCustomAuthorizeMidleware(this IApplicationBuilder app)
         {
             return app.UseMiddleware<AuthorizeMiddleware>();
         }

@@ -37,6 +37,7 @@ namespace Infrastructure.DI
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<ITaskService, TaskService>();
+            services.AddHttpContextAccessor();
             return services;
         }
     }

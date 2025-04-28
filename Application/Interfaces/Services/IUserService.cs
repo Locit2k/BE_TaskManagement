@@ -11,5 +11,7 @@ namespace Application.Interfaces.Services
     public interface IUserService
     {
         void Add(Users data);
+
+        Task<DTOUser> GetUserByUserName(string userName);
     }
 }

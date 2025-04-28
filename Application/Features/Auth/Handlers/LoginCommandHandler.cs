@@ -4,6 +4,7 @@ using Application.Interfaces.Authentications;
 using Application.Interfaces.Services;
 using Application.Interfaces.UnitOfWorks;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Auth.Handlers
 {
-    internal class LoginCommandHandler : IRequestHandler<LoginCommand, DTOResponse<DTOToken>>
+    internal class LoginCommandHandler : IRequestHandler<LoginCommand, DTOResponse<string>>
     {
         private readonly IAuthService _authService;
         private readonly IUnitOfWork _unitOfWork;
@@ -26,7 +27,7 @@ namespace Application.Features.Auth.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<DTOResponse<DTOToken>> Handle(LoginCommand request, CancellationToken cancellationToken)
+        public async Task<DTOResponse<string>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -40,10 +41,10 @@ namespace Application.Features.Auth.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<DTOToken>()
+                return new DTOResponse<string>()
                 {
                     IsError = true,
-                    ErrorType = "3",
+                    ErrorType = "2",
                     MessageError = "Đăng nhập không thành công, vui lòng thử lại."
                 };
             }

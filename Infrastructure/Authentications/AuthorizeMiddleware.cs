@@ -42,12 +42,6 @@ namespace Infrastructure.Authentications
                 return;
             }
 
-            if (identity.AuthenticationType != "Bearer")
-            {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                return;
-            }
-
             var userName = context.User.FindFirst(JwtRegisteredClaimNames.Name)?.Value;
             if (string.IsNullOrEmpty(userName))
             {

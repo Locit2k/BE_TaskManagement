@@ -37,8 +37,6 @@ namespace Infrastructure.Services
             _employeeRepository.Delete(data);
         }
 
-
-
         public async Task<Employees?> GetOneAsync(Expression<Func<Employees, bool>> predicate)
         {
             return await _employeeRepository.GetOneAsync(predicate);
