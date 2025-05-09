@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Auth.Handlers
 {
-    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, DTOResponse<string>>
+    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, DTOResponse<DTOLogin>>
     {
         private readonly IJwtProvider _jwtProvider;
         private readonly IAuthService _authService;
@@ -27,7 +27,7 @@ namespace Application.Features.Auth.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<DTOResponse<string>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task<DTOResponse<DTOLogin>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace Application.Features.Auth.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = true,
                     ErrorType = "2",

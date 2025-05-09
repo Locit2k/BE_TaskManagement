@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Auth.Commands
 {
-    public class RegisterCommand : IRequest<DTOResponse<string>>
+    public class RegisterCommand : IRequest<DTOResponse<DTOLogin>>
     {
         public string FullName { get; set; }
         public string Gender { get; set; }

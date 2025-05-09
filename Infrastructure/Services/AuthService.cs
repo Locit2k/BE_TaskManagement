@@ -54,14 +54,14 @@ namespace Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task<DTOResponse<string>> Login(string username, string password)
+        public async Task<DTOResponse<DTOLogin>> Login(string username, string password)
         {
             try
             {
                 var user = await _userRepository.GetOneAsync(x => x.UserName == username);
                 if (user == null)
                 {
-                    return new DTOResponse<string>()
+                    return new DTOResponse<DTOLogin>()
                     {
                         IsError = true,
                         ErrorType = "2",
@@ -72,7 +72,7 @@ namespace Infrastructure.Services
                 var validPassword = _passwordProvider.VerifyPassword(user, user.Password, password);
                 if (!validPassword)
                 {
-                    return new DTOResponse<string>()
+                    return new DTOResponse<DTOLogin>()
                     {
                         IsError = true,
                         ErrorType = "2",
@@ -100,21 +100,24 @@ namespace Infrastructure.Services
                     dtoUser.Email = employee.Email;
                     dtoUser.Address = employee.Address;
                 }
-
-                var token = _jwtProvider.GenerateToken(dtoUser);
+                var dtoLogin = new DTOLogin()
+                {
+                    UserName = dtoUser.UserName,
+                    Token = _jwtProvider.GenerateToken(dtoUser)
+                };
                 user.RefreshToken = _jwtProvider.GenerateRefreshToken();
                 user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
                 SetRefreshTokenCookie(_httpContextAccessor.HttpContext, user.RefreshToken);
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = false,
-                    Data = token
+                    Data = dtoLogin
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = true,
                     ErrorType = "2",
@@ -123,14 +126,14 @@ namespace Infrastructure.Services
             }
         }
 
-        public async Task<DTOResponse<string>> Register(DTORegister data)
+        public async Task<DTOResponse<DTOLogin>> Register(DTORegister data)
         {
             try
             {
                 var checkUserName = await _userRepository.ExistAsync(x => x.UserName == data.UserName);
                 if (checkUserName)
                 {
-                    return new DTOResponse<string>()
+                    return new DTOResponse<DTOLogin>()
                     {
                         IsError = true,
                         ErrorType = "1",
@@ -141,7 +144,7 @@ namespace Infrastructure.Services
                 var checkEmail = await _employeeRepository.ExistAsync(x => x.Email == data.Email);
                 if (checkEmail)
                 {
-                    return new DTOResponse<string>()
+                    return new DTOResponse<DTOLogin>()
                     {
                         IsError = true,
                         ErrorType = "1",
@@ -154,7 +157,7 @@ namespace Infrastructure.Services
                 if (roleEmp == null)
                 {
                     _logger.LogError("Tạo tài khoản không thành công. Không tìm thấy thông tin RoleName = Employee.");
-                    return new DTOResponse<string>()
+                    return new DTOResponse<DTOLogin>()
                     {
                         IsError = true,
                         ErrorType = "2",
@@ -201,20 +204,24 @@ namespace Infrastructure.Services
                     Gender = data.Gender,
                     Role = roleEmp.RoleName
                 };
-                var token = _jwtProvider.GenerateToken(dtoUser);
+                var dtoLogin = new DTOLogin()
+                {
+                    UserName = dtoUser.UserName,
+                    Token = _jwtProvider.GenerateToken(dtoUser)
+                };
                 user.RefreshToken = _jwtProvider.GenerateRefreshToken();
                 user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
                 SetRefreshTokenCookie(_httpContextAccessor.HttpContext, user.RefreshToken);
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = false,
-                    Data = token
+                    Data = dtoLogin
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = true,
                     ErrorType = "2",
@@ -223,7 +230,7 @@ namespace Infrastructure.Services
             }
         }
 
-        public async Task<DTOResponse<string>> RefreshToken(string userName)
+        public async Task<DTOResponse<DTOLogin>> RefreshToken(string userName)
         {
             try
             {
@@ -231,10 +238,10 @@ namespace Infrastructure.Services
                 var user = await _userRepository.GetOneAsync(x => x.UserName == userName && x.RefreshToken == refreshToken);
                 if (user == null)
                 {
-                    return new DTOResponse<string>()
+                    return new DTOResponse<DTOLogin>()
                     {
                         IsError = true,
-                        ErrorType = "1",
+                        ErrorType = "2",
                         MessageError = "Không tìm thấy thông tin người dùng.",
                     };
                 }
@@ -260,24 +267,27 @@ namespace Infrastructure.Services
                     dtoUser.Email = employee.Email;
                     dtoUser.Address = employee.Address;
                 }
-
-                var token = _jwtProvider.GenerateToken(dtoUser);
+                var dtoToken = new DTOLogin()
+                {
+                    UserName = dtoUser.UserName,
+                    Token = _jwtProvider.GenerateToken(dtoUser)
+                };
                 if (user.RefreshTokenExperies == null || user.RefreshTokenExperies < DateTime.Now)
                 {
                     user.RefreshToken = _jwtProvider.GenerateRefreshToken();
                     user.RefreshTokenExperies = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays);
                     _userRepository.Update(user);
                 }
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = false,
-                    Data = token,
+                    Data = dtoToken,
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = true,
                     ErrorType = "2",
@@ -297,7 +307,7 @@ namespace Infrastructure.Services
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDays),
                 Path = "/"
             };

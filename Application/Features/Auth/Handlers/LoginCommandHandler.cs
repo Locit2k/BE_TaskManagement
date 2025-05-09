@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Auth.Handlers
 {
-    internal class LoginCommandHandler : IRequestHandler<LoginCommand, DTOResponse<string>>
+    internal class LoginCommandHandler : IRequestHandler<LoginCommand, DTOResponse<DTOLogin>>
     {
         private readonly IAuthService _authService;
         private readonly IUnitOfWork _unitOfWork;
@@ -27,7 +27,7 @@ namespace Application.Features.Auth.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<DTOResponse<string>> Handle(LoginCommand request, CancellationToken cancellationToken)
+        public async Task<DTOResponse<DTOLogin>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace Application.Features.Auth.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(JsonSerializer.Serialize(ex));
-                return new DTOResponse<string>()
+                return new DTOResponse<DTOLogin>()
                 {
                     IsError = true,
                     ErrorType = "2",

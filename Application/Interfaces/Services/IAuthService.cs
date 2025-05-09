@@ -10,11 +10,11 @@ namespace Application.Interfaces.Services
 {
     public interface IAuthService
     {
-        Task<DTOResponse<string>> Login(string username, string password);
+        Task<DTOResponse<DTOLogin>> Login(string username, string password);
 
-        Task<DTOResponse<string>> Register(DTORegister data);
+        Task<DTOResponse<DTOLogin>> Register(DTORegister data);
 
-        Task<DTOResponse<string>> RefreshToken(string userName);
+        Task<DTOResponse<DTOLogin>> RefreshToken(string userName);
 
         void SetRefreshTokenCookie(HttpContext context, string refreshToken);
 
